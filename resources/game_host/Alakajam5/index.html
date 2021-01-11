@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>The Wizard's Duel</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="styles/style.css?rwcache=632048786">
+
+</head>
+
+<body>
+    <div class="outerContainer">
+        <div class="menu">
+            <button class="buttonHeader" onclick="on()">About this game</button>
+            <button class="buttonHeader-transparant" id="toggleMusicButton" onclick="toggleMusic()"><span id="BGMusicButtonLabel">BG music: Off</span></button>
+        </div>
+            <audio loop id="backgroundMusic">
+                <source src="audio/Alakajam5_BG.ogg" type="audio/ogg">
+                <source src="audio/Alakajam5_BG.mp3" type="audio/mpeg">
+                <source src="audio/Alakajam5_BG.aif" type="audio/aif">
+                Your browser does not support the audio tag.
+              </audio>
+        <div id="story" class="container">
+            <div class="header">
+                <h1><img src="images/twd_logo.png" alt="The Wizard's Duel" id="titleImage"></h1>
+                <h2 class="byline"></h2>
+            </div>
+        </div>
+
+        <div id="overlay" onclick="off()">
+            <div class="overlay-panel">
+                <h1><img src="images/twd_logo.png" alt="The Wizard's Duel"></h1>
+                This game was created for the fifth Alakajam Game Jam, which has <i>Spell Casting</i> as theme. 
+                All drawings were created by my amazing wife Iris. 
+                After you've played the game, please consider leaving some <a href="https://alakajam.com/5th-alakajam/576/the-wizards-duel/" target="_blank">feedback</a>.
+                <h2>Used tools:</h2>
+                <ul>
+                    <li><a href="https://github.com/inkle/inky" target="_blank">Inky</a> and the <a href="https://www.inklestudios.com/ink/" target="_blank">Ink</a> language by <a href="https://www.inklestudios.com" target="_blank">Inkle</a></li>
+                    <li>Visual Studio Code</li>
+                    <li>Garageband (<a href="https://en.wikipedia.org/wiki/Pachelbel%27s_Canon" target="_blank">Pachabels canon ftw</a>)& Logoist 3</li>
+                    <li>Source code on <a href="https://gitlab.com/maartene/alakajam5" target="_blank">GitLab</a></li>
+                </ul>
+                <h2>Licensed assets:</h2>
+                <ul>
+                    <li>
+                        This game uses the Abhaya Libre font.
+                        Copyright (c) 2013-2016 Abhaya Libre Project Authors (<a href="https://github.com/mooniak/abhaya-libre-font">https://github.com/mooniak/abhaya-libre-font</a>).
+                        License: <a href="https://www.fontsquirrel.com/license/abhaya-libre">https://www.fontsquirrel.com/license/abhaya-libre</a>
+                    </li>
+                </ul>
+                <div class="copyright">
+                        <a href="https://www.thedreamweb.eu" target="_blank"><img src="images/logo_64px.png" id="thedreamwebLogo"></a>
+                        <span class="copyright-text">&copy;2019 Maarten Engels, <a href="https://www.thedreamweb.eu" target="_blank">thedreamweb.eu</a> (<a href="mailto:maarten@thedreamweb.eu">maarten@thedreamweb.eu</a>)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/ink.js?rwcache=632048786"></script>
+    <script src="scripts/story.js?rwcache=632048786"></script>
+    <script src="scripts/main.js?rwcache=632048786"></script>
+    <script src="scripts/overlay.js?rwcache=632048786"></script>
+    <script src="scripts/audioControls.js?rwcache=632048786"></script>
+</body>
+</html>

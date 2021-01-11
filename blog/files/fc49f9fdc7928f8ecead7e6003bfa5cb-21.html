@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/fc49f9fdc7928f8ecead7e6003bfa5cb-21.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/fc49f9fdc7928f8ecead7e6003bfa5cb-21.html">
+	
+
+	<title>Running Vapor apps in the Cloud using Docker and Digital Ocean | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-21" class="blog-entry"><h1 class="blog-entry-title">Running Vapor apps in the Cloud using Docker and Digital Ocean</h1><div class="blog-entry-date">31-12-2019  Filed in: <span class="blog-entry-category"><a href="category-swift.html">Swift</a></span><span class="blog-entry-category"> | <a href="category-vapor.html">Vapor</a></span></div><div class="blog-entry-summary">So, you created a nice Vapor app? Or you followed one of many online Vapor tutorials? And you have it running successfully, albeit locally? Now you want to run it on the <em>server</em>? This is exactly where I was a couple of days ago. And getting my App to run online was a little tougher than expected&hellip;</div><div class="blog-entry-body">Over the last couple of weeks, I've been working on an online game (<a href="https://mission2mars.space" target="_blank">mission2mars.space</a>). A few days ago it was in a state where I wanted to see whether I could get it running online somewhere.<br /><br />Now, there are many different options to run code online. And your preferred method depends on your requirements and priorities. So, I'll start by articulating mine:<br /><br /><h3>Requirements:</h3><br /><ol class="arabic-numbers"><li>The solution needs to be affordable (note: this is != free);</li><li>Preferable the solution needs to be much "hands off" as possible: PaaS over IaaS over physical hardware;</li><li>The game should be accessible using a fully qualified hostname (so, not by ip-address) on a regular port (i.e. not on 52413);</li><li>The game should be accessible using https.</li><li>Note: requirement 1 might sound like I'm cheap. But remember, for now this is just a hobby. It only costs money. No problem, but it needs to be manageable.</li></ol><br />When assessing and testing solutions, I will refer back to these requirements.<br /><br /><h3>PaaS solutions: Vapor Cloud and Heroku</h3><br />Both <a href="https://vapor.cloud" target="_blank">Vapor Cloud</a> and <a href="https://www.heroku.com" target="_blank">Heroku</a> have free tiers (satisfy requirement 1) and should be able to run the app without any additional system administration (requirement 2). They also provide FQDN and https out of the box, so these solutions were the first for me to try out. However, I quickly ran into snags:<br /><h4>Heroku</h4><br />My code is based on Swift 5.1, however the latest version supported (i.e. a build pack is available) on Heroku is 5.0.3. So I was unable to run my code, without down porting to the lower Swift version. I find down porting a terrible thing to do BTW, so I articulated a new requirement instead: support Swift 5.1. And looked elsewhere.<br /><br /><h4>Vapor Cloud</h4><br />Vapor Cloud is interesting as it is marketed as the easiest way of running Vapor code online. However, I could not get it to work. Although my code compiled, and the vapor command line tool told me everything was ok, the site remained inaccessible (the load balancer was apparently unable to connect to the Vapor game). I don't believe this is a Vapor Cloud issue. Unfortunately, all the log files remained empty, so I was unable to troubleshoot further.<br /><br />Next on my list: generic cloud & IaaS solutions<br />As the PaaS solutions didn't work (in my case), I looked further down the stack at IaaS solutions. Do note that at this time I was able to run the app from a Docker container.<br /><br /><h3>AWS</h3><br />(AWS) <a href="https://aws.amazon.com" target="_blank">Amazon Web Services</a> was my first stop. AWS does not have native support for Swift/Vapor, but has various ways of running Docker containers. From Elastic Container Service, through Elastic Beanstalk to a vanilla EC2 server. I did get the app running in an EC2 server, but eventually found AWS to confusing for my liking. In particular:<br /><ul class="disc"><li>There is soooo much choice, I'm unsure what to use;</li><li>Also, to set up a complete system requires setting up a lot of components: not just the server, but also load balancers, networks, certificates, etc.;</li><li>Cost control is difficult because everything is metered and due to the sheer number of choices, getting an idea about how much it would cost <em>in practice</em> to run this game online became very difficult. For me being affordable (requirement 1) means more than "cheap", it also means predictable (will I be able to settle the bill at the end of the month?). Although I have no doubt that AWS can be very cost effective, the uncertainty about the cost makes this too much of a risk for me.</li></ul>I feel AWS is a very mature solution, but overkill for my current needs. Perhaps once the game has 1_000_000 players&hellip;<br /><br />(I did a comparison with <a href="https://www.azure.com" target="_blank">Azure</a>, and found it typically more expensive for my current needs than AWS)<br /><br /><h3>Digital Ocean</h3><br />I eventually settled for <a href="https://www.digitalocean.com" target="_blank">Digital Ocean</a>. In particular because it provides a very simple pricing model: servers (and additional services) are quoted per month. So, it might not be the cheapest solution (there is no free tier) and I probably pay more than I use, but it is predictable and I know I can afford it. Also, it provides a lot of setup assistance and excellent documentation to get a web application up and running.<br /><br /><h3>Running Vapor on Digital Ocean</h3><br />So, how do you get a Vapor application running on a Digital Ocean server (or Droplet as they call them)?<br /><br />Digital Ocean does not have Swift/Vapor support out of the box, but it does have excellent Docker support. So the first thing you need to do is make sure you can run your Vapor application from a Docker container. <br /><h4>Docker setup for Vapor apps</h4><br />You need to get Docker on your Mac. I recommend the <a href="https://www.docker.com/products/docker-desktop" target="_blank">Docker Desktop app</a>. This allows you to start, configure and stop the Docker daemon from a graphical menu item.<br /><br />Create a file called "Dockerfile" in the root folder of your Vapor project. This is the Dockerfile I use (it's based on the one vapor creates when you create a new project):<br /><script src="https://gist.github.com/maartene/4fa8b76ad387d0b785f80c247144aa1e.js"></script><br /><br />This Dockerfile works in two phases: in the first phase (lines 1-12) a container is spun up to <em>build</em> the application. The built application is then copied into another (much smaller) container. The latter container is used to run your app. It is much smaller (~250MB) than the build container (~2GB).<br /><br />Build the container using the Docker command (from the same folder where you created Dockerfile):<br /><code>docker image build -t mission2mars:0.0.2 .</code>    (Substitute "mission2mars:0.0.2" for your own productname and version number)<br /><br />Then create and run a container from the new image. <br /><code>docker container run --publish 80:8080 --detach --name m2m maartene/mission2mars:0.0.2</code><br /><br />So you can run your app from a Docker container. Excellent! Now you need to get it on a Droplet. <br /><br /><h4>A note about databases</h4><br />The app I published doesn't use any remote databases, but instead uses SQLite. The reason for this is cost: a managed database from a cloud provider costs about $15 per month. That is the same price as my Droplet + Loadbalancer! I've been able to run the game also using PostgreSQL (locally using docker-compose and in Digital Ocean). If in the future there is need to migrate back to an actual RDBMS system, I'll outline the steps taken to get there. For now, SQLite will be good enough, especially because I don't care about data loss. My game is pre-release software and free! No guarantees&hellip; ;) <br /><br /><h3>Run your Vapor app in a Droplet</h3><br />First create an account and a Droplet on Digital Ocean (the smallest one will probably do for now). Then you need to get your app on the Droplet. I suppose this can be done in two ways:<br />1. Replicate your build environment to the Droplet. Then build the Docker image on the Droplet itself (basically repeat the previous steps);<br />2. Use a Docker image repository (like <a href="https://hub.docker.com" target="_blank">hub.docker.com</a> - free for public images)<br /><br />I chose the latter solution because the Droplet I chose is fast enough and has plenty of memory to run the app (hurray for compiled code!), but not quite enough to quickly build it. Using Docker Hub I am able to use my local laptop to do all compiling.<br /><br />To get my game on Docker Hub, I do the following:<br />(On laptop)<br/><br /><code>### Tag image<br/>docker image tag mission2mars:0.0.2 maartene/mission2mars:0.0.2<br/>### Upload image to Registry (Docker Hub)<br/>docker image push maartene/mission2mars:0.0.2</code><br /><br />(On Droplet)<br /><code>### Pull new version of image</br>docker image pull maartene/mission2mars:0.0.2<br/>### Stop the old container<br/>docker container stop m2m<br/>### Destroy old container<br/>docker container rm m2m<br/>### Run a new container with the new version<br/>docker container run --publish 80:8080 --detach --name m2m maartene/mission2mars:0.0.2</code><br /><br />If the app starts successfully, you should be able to access it using cURL from the server:<br /><code>curl hostname</code><br /><img class="imageStyle" alt="Schermafbeelding 2019-12-31 om 14.05.04" src="schermafbeelding-2019-12-31-om-14.05.04.png" width="413" height="225" /><br /><br /><strong>Congratulations!</strong> You have a Vapor app running on a cloud server!<br /><br /><h3>Domain setup</h3><br />Second, you need some way of accessing the server when you have it running. Depending on your requirements, you can just use an elasting-ip address (a static public IP address, free with your Droplet) and use that to access it. <br /><br />However, I expect you want to provide some sort of hostname and https to access your application. To do this, you need three things:<br /><ol class="arabic-numbers"><li>A correctly configured domain</li><li>A load balancer configured to offload https</li><li>A correctly configured firewall</li></ol><br />I'll go over each step in more detail below<br /><br /><h4>Correctly configured domain</h4><br />I assume you have some domain name you want to use for your game. I was able to get mission2mars.space for 1,20 Euro (!) using Gandi. There are <a href="https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars" target="_blank">guides</a> specific to most Domain registrars.<br /><br /><img class="imageStyle" alt="Schermafbeelding 2019-12-31 om 13.15.53" src="schermafbeelding-2019-12-31-om-13.15.53.png" width="617" height="222" /><br /><br />When you have the domain set to use the Digital Ocean domain servers, it takes some time for this change to be visible on the Internet. I advice you wait about an hour before attempting the next step.<br /><br />On Digital Ocean, you can now setup the domain. Its mostly a wizard you need to follow, but for details see <a href="https://www.digitalocean.com/docs/networking/dns/how-to/add-domains/" target="_blank">here</a>. <br /><br /><h4>Setup load balancer</h4><br />We will use a load balancer as the front-end to access the App. The load balancer configuration wizard also creates an HTTPS certificate for you, if you don't have one yourself. The wizard will also create any domain records (A-records) that are needed to resolve the domain name. At a minimum, you need the following forwarding rule:<br /><br /><img class="imageStyle" alt="Schermafbeelding 2019-12-31 om 14.15.27" src="schermafbeelding-2019-12-31-om-14.15.27.png" width="608" height="130" /><br /><br />Do note that you need to configure the load balancer within the same datacenter as the Droplet that runs the App. So if you chose Amsterdam-3 for the latter, you should also choose Amsterdam-3 for the former. I made this mistake and it cost me a few hours to figure it out.<br /><br /><br /><h4>A correctly configured firewall</h4><br />Its wise to setup a firewall for your Droplet. Most likely you will need to allow SSH inbound access. Please note that that the load balancer needs explicit access to the Vapor app. I didn't know this, and until I did, the load balancer thought my application was "down".<br /> <br /><img class="imageStyle" alt="Schermafbeelding 2019-12-31 om 13.23.14" src="schermafbeelding-2019-12-31-om-13.23.14.png" width="617" height="130" /><br /><br /><br />The end result should be a Vapor app,  professionally accessible through a domain and https! <br /><br /><img class="imageStyle" alt="Schermafbeelding 2019-12-31 om 14.17.32" src="schermafbeelding-2019-12-31-om-14.17.32.png" width="1227" height="271" /><br /><br />(Notice the Lock in the address bar)<br /><br /><h3>Next steps</h3><br />The next step is probably sending e-mails from the game. When the time comes, I'll show you how to do this in another post.</div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/c10e464565b2439eef0cc266129927aa-0.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/c10e464565b2439eef0cc266129927aa-0.html">
+	
+
+	<title>Experimenting with deterministic lockstep multiplayer | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-0" class="blog-entry"><h1 class="blog-entry-title">Experimenting with deterministic lockstep multiplayer</h1><div class="blog-entry-date">22-12-2017  Filed in: <span class="blog-entry-category"><a href="category-experiments.html">Experiments</a></span></div><div class="blog-entry-summary">Years ago I created an experimental multiplayer game using the Unity engine. It couldn&rsquo;t be simpler:<br /><br /><ul class="disc"><li>Just control a sphere to try and push the other spheres out of the &ldquo;arena&rdquo;;</li><li>Use Unity to do all the physics heavy lifting;</li><li>Just sync the rigidbodies across clients.</li><li>It never worked. And I now understand why it never worked.</li></ul></div><div class="blog-entry-body"><h1>Deterministic physics engines and lockstep engines</h1>Out of the box, Unity physics are not deterministic. This is great! Because it&rsquo;s simple to use, it looks good and its fast. It just means that you can&rsquo;t use it for a networked physics based game in a naive way (like I did). And I really want to make a physics based multiplayer game. So how can I make my physics based, networked multiplayer game? Typically there are two solutions:<br /><br /><ol class="arabic-numbers"><li>Use an authoritative server or client: simply put, all physics is simulated on the server (if present) or one of the clients. Then sync the results of the simulation to all other clients;</li><li>Use a lockstep mechanisme with a deterministic physics engine.</li></ol><br />For my previous experiment I actually tried to implement solution 1. However, the code required became really convoluted really fast because you constantly need to implement two cases: a client is authoritative and thus running the physics simulation or not and only showing visuals. Also, the authoritative client always had an advantage due to network latency, because it saw the results of the physics simulation before other clients and processing of input was fasted.<br /><br /><div class="image-right"><img class="imageStyle" alt="Photon_logo" src="photon_logo.png" width="363" height="167" /></div>I learned about the second approach a few weeks ago in a presentation from Photon Networks, who provide a Unity lockstep solution: TrueSync. The idea behind a deterministic physics and lockstep networking is to have all clients run a local simulation of the game and only exchange (player) input. The lockstep mechanism makes sure that the simulation only advances if the input of all players is available in all clients. This way, all clients share the same input state. The deterministic physics engine makes sure that the state of each physics transition will be exactly the same on each client. This prevents the simulation from going out of sync, especially over longer play times. There is a lot more going on regarding input lag compensation, but this is the basic idea.<br /><br />The remainder of this post goes into my experiences with this solution.<br /><br /><h2>Learning TrueSync</h2><br />Start with the excellent tutorial on the TrueSync website. This gives you a quick overview of what it means to use TrueSync and (more importantly) write deterministic code. You&rsquo;ll make a simple &ldquo;dueling&rdquo; game where you control a cube that can shoot the other cubes. <br />Go try it out.<br /><br /><h2>My experimental game</h2><br /><div class="image-right"><img class="imageStyle" alt="TrueSyncTest" src="truesynctest.png" width="383" height="208" /></div>The example on the TrueSync was already pretty close to the type of game I wanted to make. I wanted to make a physics controlled arcade arena shooter. I drafter the following requirements:<br /><br /><ul class="disc"><li>Physics based controls (i.e. apply forces to your spaceship);</li><li>2D and only one screen;</li><li>2-4 players;</li><li>If there are fewer that 4 human players, add bots to fill in the empty player slots;</li><li>Keep track of deaths and kills;</li><li>Respawn delay.</li></ul><br />As indicated the example on the TrueSync site already is a good start in this direction. However, after adapting the example to my requirements, I actually learned quite a few things that might be useful to you as well if you consider using TrueSync (or similar solution).<br /><br /><h2>A few requirements were very simple to implement</h2><br />Going from cubes to sprites is not very difficult. Changing the camera to look over the play are and confining the play area is not very challenging either. Going from kinematic rigidbodies to force controlled rigidbodies is pretty straightforward also. I won&rsquo;t go into the details of these changes.<br /><br /><h2>Physics based controls &ndash; missing convenience functions</h2><br />TrueSync contains both a deterministic 3D as well as a deterministic 2D engine. It&rsquo;s important to know that the 2D engine is not as refined as the 3D engine. Both implement the basics you need from a physics engine: rigidbodies, colliders, forces, velocity, weight, etc. The big difference is that the 2D version lacks many of the convenience functions available in the 3D engine. Here are two examples:<br /><br /><img class="imageStyle" alt="3d_physics_example" src="3d_physics_example.png" width="786" height="50" /><br /><br /><img class="imageStyle" alt="2d_physics_example" src="2d_physics_example.png" width="897" height="118" /><br /><br /><h2>Adding bots</h2><br />Less than four player, add bots to fill the missing spots? How do you do that when there is no real masterclient in TrueSync? Additional requirements: this should also work in offline mode. My solution is based on the following properties of the TrueSync engine:<br /><br /><ul class="disc"><li>The first player to join always has owner.Id == 1;</li><li>In offline mode, owner.Id == 0.</li></ul><br />See the following code from the SpawnBots.cs class:<br /><br /><img class="imageStyle" alt="spawning_bots" src="spawning_bots.png" width="716" height="486" /><br /><br />(note: the matchmaking menu sets the PlayerPrefs variable &ldquo;BotCount&rdquo;.<br /><br />So, now you have bots. There is a problem though: these bots are associated with the client and thus the player that spawned them. This means you can&rsquo;t base score simply on the bot&rsquo;s owner: that player would be killed a lot and get a lot of free kills (based on the AI quality of the bots of course). I solved this using tags. There is probably a more elegant solution, but this one was simple to implement, especially within the limited scope of this game. See the following code from the Projectile.cs class:<br /><br /><img class="imageStyle" alt="projectile_hits" src="projectile_hits.png" width="778" height="680" /><br /><br /><br /><h2>Keep track of deaths and kills</h2><br />The example on the TrueSync site keeps track of deaths. But I also want to track kills. Because some of the actors in the game are bots, using the TrueSyncBehaviour.owner property doesn&rsquo;t work correctly. I created a simple class PlayerActor.cs that keeps track of score data:<br /><br /><img class="imageStyle" alt="game_actor_deaths_kills" src="game_actor_deaths_kills.png" width="449" height="161" /><br /><br />The Projectile.cs class has a reference to the GameActor that spawned the projectile (and thus owns it):<br /><br /><img class="imageStyle" alt="game_actor_owning_player" src="game_actor_owning_player-2.png" width="471" height="144" /><br /><br /><br /><h2>Respawn delay</h2><br />This one was by far the most complex to implement. Because, the usual solution would be to use some sort of CoRoutine to handle the timer and respawning. CoRoutines however in Unity are not deterministic. TrueSync has you covered there, but it only supports waiting for a fixed amount of time. Like this:<br /><br /><code>yield 3.0f</code><br />This works fine, unless you want to display something like a respawn timer (which I off course want). My solution was to use the old school timer solution in the TrueSync update loop in the GameActor.cs class:<br /><br /><img class="imageStyle" alt="gameActor_respawn_variables" src="gameactor_respawn_variables.png" width="328" height="122" /><br /><br /><img class="imageStyle" alt="gameActor_respawn_code" src="gameactor_respawn_code.png" width="908" height="400" /><br /><br /><br /><h2>Conclusion</h2><br />Using TrueSync and writing deterministic code was a lot less difficult than I imagined. For me I think this will be my preferred way of doing multiplayer games as the code itself is pretty similar to single player code. Apart from the topics I mentioned above, the main thing to keep in mind is to make sure your code remains deterministic. This means use the Fixed Point math alternatives TSVector, TSQuaternion, FP (for float/double), TSRandom in your code consistently.<br /><br />If you want to take a look at the project, you can find it here: <a href="https://bitbucket.org/maarten_engels/truesynctest">https://bitbucket.org/maarten_engels/truesynctest</a><br /><br /><img class="imageStyle" alt="game_example_screenshot" src="game_example_screenshot.png" width="765" height="418" /></div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>

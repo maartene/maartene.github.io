@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/b7ef2fdcbcd58f3161f84cb2ab86513c-23.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/b7ef2fdcbcd58f3161f84cb2ab86513c-23.html">
+	
+
+	<title>Bye bye callbacks! Combining Combine and SpriteKit | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-23" class="blog-entry"><h1 class="blog-entry-title">Bye bye callbacks! Combining Combine and SpriteKit</h1><div class="blog-entry-date">04-04-2020  Filed in: <span class="blog-entry-category"><a href="category-swift.html">Swift</a></span><span class="blog-entry-category"> | <a href="category-hexengine.html">HexEngine</a></span><span class="blog-entry-category"> | <a href="category-spritekit.html">SpriteKit</a></span><span class="blog-entry-category"> | <a href="category-experiments.html">Experiments</a></span></div><div class="blog-entry-summary">Consider a simulation game. The game probably has some entities, wether it's cities, cells, soldiers or reindeer. Now consider it is a turn based game, where the simulation advances on a "tick" basis. Before and after the tick, the state of the simulation will have changed, so for instance your cells might have a different color and your reindeer might have moved. Your visualization should update accordingly.<br /><br />Due to the complexity usually involved with simulation models, your modal is probably a self contained unit, that perhaps knows nothing about UI stuff. Or it shouldn't anyway, because why would it care? Can we use Combine with SpriteKit to simulate the "automagical updating" of SwiftUI. Yes we can!<br /><br /></div><div class="blog-entry-body"><br /><h3>The classic approach: callbacks</h3><br />But first, let's look at the classical approach. The classical approach would be to use callbacks. Consider for example a unit struct with a callback:<br /><br /><pre><code><span class="keyword">struct</span> Unit {<br />	<span class="keyword">var</span> position: (x: <span class="type">Int</span>, y: <span class="type">Int</span>)<br />	<br />	<span class="keyword">static</span> <span class="keyword">var</span> onUnitChanged: ((<span class="type">Unit</span>) -&gt; <span class="type">Void</span>)?<br /><br />	<span class="keyword">mutating</span> <span class="keyword">func</span> update() {<br />		<span class="comment">//</span> <span class="comment">do</span> <span class="comment">something</span> <span class="comment">to</span> <span class="comment">determine</span> <span class="comment">new</span> <span class="comment">position</span><br />		position = newPosition<br />		<br />		onUnitChanged?(<span class="keyword">self</span>)<br />		<span class="keyword">return</span> <span class="keyword">self</span><br />	}<br />}<br /></code></pre><br />You might register a callback somewhere else that responds to the callback:<br /><br /><pre><code><span class="type">Unit</span>.<span class="property">onUnitChanged</span> = { unit <span class="keyword">in</span> <br />	<span class="comment">//</span> <span class="comment">find</span> <span class="comment">sprite</span> <span class="comment">for</span> <span class="comment">unit</span><br />	<span class="keyword">if</span> <span class="keyword">let</span> sprite = unitToSpriteMap[unit] {<br />		sprite.<span class="property">position</span> = <span class="type">CGPoint</span>(x: unit.<span class="property">position</span>.<span class="property">x</span>, y: unit.<span class="property">positing</span>.<span class="property">y</span>)<br />	}<br />}</code></pre><br /><br />This works pretty well, but can become complex:<br /><ol class="arabic-numbers"><li>when you need more than one thing reacting to a change;</li><li>there are multiple places where the unit can be changed;</li><li>there are a lot of events you want to react to.</li></ol><br />Some time ago when I was working on <a href="https://github.com/maartene/HexEngine" target="_blank">HexEngine</a>, I started using <a href="../files/swiftui-for-spritekit-games.html" target="_blank" title="Devlog:SwiftUI as UI for SpriteKit games">SwiftUI for the UI layer</a>. And I was surprised with how easy it is to keep game state and UI in sync. SwiftUI takes care of that in the background. On the other hand, I was adding more and more callbacks to the SpriteKit part of the game to keep the visuals in sync with the UI. I had callbacks calling callbacks. Unused callbacks. Callbacks working against eachother. It was a mess and very difficult to debug.<br /><br />Fortunately you can actually reuse the SwiftUI way of keeping UI in sync with state using Combine.<br /><br /><h3>Combining Combine and SpriteKit</h3><br />When you already use SwiftUI in a project, you probably already have <code>ObservableObjects </code>and properties marked <code>@published</code>. In HexEngine, I just reused most of the properties that were already exposed using <code>@published</code>.<br /><br />The entire simulation state in HexEngine is contained in a World object. This object conforms to <code>ObservableObject</code> and exposes (among others) an <code>@published units: [UUID: Unit]</code> dictionary. I have a <code>UnitSpriteController</code> that takes care of creating and updating sprites representing units in the game scene. Previously, I was using the <code>onUnitCreate(_)</code> and <code>onUnitChanged(_)</code> callback method. Now I use Combine:<br /><br /><pre><code><span class="keyword">func</span> subscribeToUnitsIn(world: <span class="type">World</span>) {<br />    world.$units.<span class="call">sink</span>(receiveCompletion: { completion <span class="keyword">in</span><br />        print(<span class="string">"Print</span> <span class="string">UnitController</span> <span class="string">received</span> <span class="string">completion</span> \(completion) <span class="string">from</span> <span class="string">world.units"</span>)<br />    }, receiveValue: { [<span class="keyword">weak</span> <span class="keyword">self</span>] units <span class="keyword">in</span><br />        <span class="comment">//</span> <span class="comment">there</span> <span class="comment">are</span> <span class="comment">three</span> <span class="comment">cases</span><br />        <br />        <span class="keyword">for</span> unitID <span class="keyword">in</span> units.<span class="property">keys</span> {<br />            <br />            <span class="comment">//</span> <span class="comment">case</span> <span class="comment">1:</span> <span class="comment">unit</span> <span class="comment">is</span> <span class="comment">known</span> <span class="comment">to</span> <span class="comment">both</span> <span class="comment">UnitController</span> <span class="comment">and</span> <span class="comment">World:</span><br />            <span class="keyword">if</span> <span class="keyword">self</span>?.<span class="property">unitSpriteMap</span>[unitID] != <span class="keyword">nil</span>, <span class="keyword">let</span> unit = units[unitID]{<br />                <span class="keyword">self</span>?.<span class="call">updateUnitSprite</span>(unit: unit)<br />            }<br />        <br />            <span class="comment">//</span> <span class="comment">case</span> <span class="comment">2:</span> <span class="comment">unit</span> <span class="comment">is</span> <span class="comment">known</span> <span class="comment">to</span> <span class="comment">world,</span> <span class="comment">but</span> <span class="comment">not</span> <span class="comment">yet</span> <span class="comment">to</span> <span class="comment">UnitController</span><br />            <span class="keyword">if</span> <span class="keyword">self</span>?.<span class="property">unitSpriteMap</span>[unitID] == <span class="keyword">nil</span>, <span class="keyword">let</span> unit = units[unitID] {<br />                <span class="keyword">self</span>?.<span class="call">createUnitSprite</span>(unit: unit)<br />            }<br />        }<br />        <br />        <span class="comment">//</span> <span class="comment">case</span> <span class="comment">3:</span> <span class="comment">the</span> <span class="comment">final</span> <span class="comment">case</span> <span class="comment">is</span> <span class="comment">where</span> <span class="comment">a</span> <span class="comment">unit</span> <span class="comment">is</span> <span class="comment">known</span> <span class="comment">to</span> <span class="comment">the</span> <span class="comment">UnitController,</span> <span class="comment">but</span> <span class="comment">not</span> <span class="comment">the</span> <span class="comment">world</span><br />        <span class="comment">//</span> <span class="comment">i.e.</span> <span class="comment">when</span> <span class="comment">the</span> <span class="comment">unit</span> <span class="comment">is</span> <span class="comment">removed</span><br />        <span class="keyword">for</span> unitID <span class="keyword">in</span> (<span class="keyword">self</span>?.<span class="property">unitSpriteMap</span> ?? [<span class="type">UUID</span>: <span class="type">UnitSprite</span>]()).keys {<br />            <span class="keyword">if</span> units[unitID] == <span class="keyword">nil</span> {<br />                <span class="keyword">self</span>?.<span class="call">removeUnitSprite</span>(unitID: unitID)<br />            }<br />        }<br />    }).<span class="call">store</span>(in: &cancellables)<br />}</code></pre><br /><br />Same for Cities. <span style="font:12px AppleColorEmoji; ">😎</span><br /><br /><h3>An example from scratch</h3><br />HexEngine is pretty big, so I created a very small example program. You can find it<a href="https://github.com/maartene/CombineSpritekitExample" target="_blank"> here</a>.<br /><br /><img class="imageStyle" alt="reindeer" src="reindeer.gif" width="490" height="376" /><br /><br />The example is mostly boilerplate code. The simulation itself is little more than a stub.<br /><br />The simulation is contained in <code>World.swift</code> in the World class:<br /><pre><code><span class="keyword">class</span> World: <span class="type">ObservableObject</span> {<br />    <span class="keyword">@Published</span> <span class="keyword">var</span> units: [<span class="type">UUID</span>: <span class="type">Unit</span>]<br />    <br />    <span class="keyword">let</span> width: <span class="type">Double</span><br />    <span class="keyword">let</span> height: <span class="type">Double</span><br />    <br />    <span class="keyword">func</span> step() {<br />        <span class="keyword">if</span> <span class="keyword">let</span> randomUnitID = units.<span class="property">keys</span>.<span class="call">randomElement</span>() {<br />            units[randomUnitID] = units[randomUnitID]!.<span class="call">update</span>()<br />        }<br />    }<br />    <br />    <span class="keyword">init</span>(numberOfUnits: <span class="type">Int</span>, width: <span class="type">Double</span>, height: <span class="type">Double</span>) {<br />        units = [<span class="type">UUID</span>: <span class="type">Unit</span>]()<br />        <span class="keyword">self</span>.<span class="property">width</span> = width<br />        <span class="keyword">self</span>.<span class="property">height</span> = height<br />        <br />        <span class="keyword">for</span> <span class="keyword">_</span> <span class="keyword">in</span> <span class="number">0</span> ..&lt; numberOfUnits {<br />            <span class="keyword">let</span> newUnit = <span class="type">Unit</span>(movementRangeX: <span class="number">0</span>...width, movementRangeY: <span class="number">0</span>...height)<br />            units[newUnit.<span class="property">id</span>] = newUnit<br />        }<br />    }<br />}</code></pre><br /><br />World class conforms to <code>ObservableObject</code> - this will be familiar if you used SwiftUI in the past. The World class contains a list of units. This list is marked <code>@published</code>, so we can use it from SwiftUI as well as other Combine subscribers. Note you need to <code>import Combine</code> or <code>import SwiftUI</code> to use @published in World.swift.<br /><br />And implements a <code>step()</code> function that updates the simulation (i.e. advances a turn).<br /><br />World.swift also contains a <code>Unit</code> struct: <br /><pre><code><span class="keyword">struct</span> Unit {<br />    <span class="keyword">let</span> id: <span class="type">UUID</span><br />    <span class="keyword">var</span> posX: <span class="type">Double</span><br />    <span class="keyword">var</span> posY: <span class="type">Double</span><br />    <br />    <span class="keyword">var</span> movementRangeX: <span class="type">ClosedRange</span>&lt;<span class="type">Double</span>&gt;<br />    <span class="keyword">var</span> movementRangeY: <span class="type">ClosedRange</span>&lt;<span class="type">Double</span>&gt;<br />    <br />    <span class="keyword">init</span>(movementRangeX: <span class="type">ClosedRange</span>&lt;<span class="type">Double</span>&gt;, movementRangeY: <span class="type">ClosedRange</span>&lt;<span class="type">Double</span>&gt;) {<br />        id = <span class="type">UUID</span>()<br />        <span class="keyword">self</span>.<span class="property">movementRangeX</span> = movementRangeX<br />        <span class="keyword">self</span>.<span class="property">movementRangeY</span> = movementRangeY<br />        posX = <span class="type">Double</span>.<span class="call">random</span>(in: movementRangeX)<br />        posY = <span class="type">Double</span>.<span class="call">random</span>(in: movementRangeY)<br />    }<br />    <br />    <span class="keyword">func</span> update() -&gt; <span class="type">Unit</span> {<br />        <span class="keyword">var</span> changedUnit = <span class="keyword">self</span><br />        changedUnit.<span class="property">posX</span> = <span class="type">Double</span>.<span class="call">random</span>(in: movementRangeX)<br />        changedUnit.<span class="property">posY</span> = <span class="type">Double</span>.<span class="call">random</span>(in: movementRangeY)<br />        <br />        <span class="keyword">return</span> changedUnit<br />    }<br />}</code></pre><br /><br />Units only have an <code>id</code> (so we can reference them later) and a <code>position</code> (that can change). They also have an <code>update()</code> function that gives them a new position.<br /><br />There is only one subscriber in the game, in the GameScene class:<br />Note: GameScene.swift requires <code>import Combine</code> to get access to the required functions and types.<br />In <code>didmove(to:)</code> we first generate a new world and then subscribe to changes of the units dictionary in World:<br /><pre><code><span class="keyword">override</span> <span class="keyword">func</span> didMove(to view: <span class="type">SKView</span>) {<br />    world = <span class="type">World</span>(numberOfUnits: <span class="number">2500</span>, width: <span class="type">Double</span>(<span class="keyword">self</span>.<span class="property">size</span>.<span class="property">width</span>), height: <span class="type">Double</span>(<span class="keyword">self</span>.<span class="property">size</span>.<span class="property">height</span>))<br />    <br />    world.$units.<span class="call">sink</span>(receiveValue: { [<span class="keyword">weak</span> <span class="keyword">self</span>] units <span class="keyword">in</span><br />        <span class="keyword">guard</span> <span class="keyword">let</span> gc = <span class="keyword">self</span> <span class="keyword">else</span> {<br />            <span class="call">print</span>(<span class="string">"How</span> <span class="string">is</span> <span class="string">this</span> <span class="string">being</span> <span class="string">called</span> <span class="string">if</span> <span class="string">self</span> <span class="string">is</span> <span class="string">no</span> <span class="string">longer</span> <span class="string">available?"</span>)<br />            <span class="keyword">return</span><br />        }<br />        <br />        <span class="keyword">for</span> unitID <span class="keyword">in</span> units.<span class="property">keys</span> {<br />            <span class="keyword">if</span> <span class="keyword">let</span> unit = units[unitID] {<br />                <span class="keyword">if</span> gc.<span class="property">unitSpriteMap</span>[unitID] != <span class="keyword">nil</span> {<br />                    gc.<span class="call">updateSpriteForUnit</span>(unit)<br />                } <span class="keyword">else</span> {<br />                    gc.<span class="call">createSpriteForUnit</span>(unit)<br />                }<br />            }<br />        }<br />    }).<span class="call">store</span>(in: &cancellables)<br />}</code></pre><br /><br />This is where the Combine magic comes in. The syntax might look strange, but it's rather simple. First consider <code>world.$units</code>. This means we want the units <em>publisher</em> and not the actual units dictionary. We then call <code>sink(receiveValue:)</code> on the publisher. '<code>sink</code>' is a subscriber that accepts the values emitted by the publisher and does something with them. The <code>receiveValue</code> parameter takes a closure that operates on the received value. I'll get into that in a bit.<br /><br />The last part is the <code>.store(in:)</code> call. This one makes sure the subscriber sticks around after the method ends by putting the subscriber in a <code>cancellables</code> property (of type <code>Set&lt;AnyCancellable&gt;</code>.<br /><br />The closure itself works are follows:<br />You can ignore the <code>[weak self]</code> and <code>guard</code> statement for now if you want. More importantly, the closure receives a <code>units</code> value. Note the type of this value: it is of type <code>[UUID: Unit]</code>, not <code>[Unit]</code> or a single <code>unit</code>.<br /><br />We then loop through every key in the dictionary and find the associated unit. There are now two cases:<br /><ol class="arabic-numbers"><li>The unit is already known in both the units dictionary and the <code>unitSpriteMap</code>. This means that a sprite already exists for the unit. We only need to update the sprite. In this case we call <code>updateSpriteForUnit(_)</code>.</li><li>The unit is known in the units dictionary, but not (yet) in the unitSpriteMap. This means, we don't yet have a sprite for this unit. In this case we call <code>createSpriteForUnit(_)</code> for this unit. </li></ol><br />There are also two functions that modify the games visuals as per the changes in units: <code>func createSpriteForUnit(_)</code> and <code>updateSpriteForUnit(_)</code>. These are both trivial.<br /><br />The <code>update()</code> function just calls <code>world.step()</code> every frame to stress the game world somewhat and get an idea of the performance.<br /><br /><h3>Discussion</h3><br />The method I've shown so far is a pretty naive implementation. Note that the value that is published in <code>$units</code> is of type <code>[UUID: Unit]</code>. This means that even if one unit changes, the entire dictionary is sent to all subscribers. And the subscriber loops through all units. This is highly inefficient if only one unit or a very small number of units changes. We're talking O2 complexity here. The code is simple though.<br /><br />On the other hand, I did some testing with various numbers of units and various numbers of changed units per tick. I found that, with ~100 units, there is absolutely no problem updating every one every turn. Even though this triggers 100 publishes where all 100 units are evaluated. So we're evaluating say 10.000 units, even if only one changed. On my 2016 base model MacBook Pro, this still nets 60fps in the example program. Similarly, updating one unit every turn allows for 2500 units on screen updated 60fps. <br /><br />All units updating in the same turn is highly unlikely, because:<br /><ul class="disc"><li>Units are updated on a per player basis;</li><li>Most likely not all units need to change;</li><li>2500 units is actually quite a lot: in a large map Civ V game, getting more than 50 units per player is a challenge.</li></ul>So for now, I'll take simplicity over optimization and stick with the naive implementation. <br /><br />I wrote this after working through the first four chapters of the book "<a href="https://gumroad.com/l/practical-combine" target="_blank">Practical Combine</a>" by Donny Wals. I'm impressed with how easy it was to include Combine in my code and how well Donny was able to teach me. <br /><br /></div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>

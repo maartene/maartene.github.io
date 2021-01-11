@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/72680bf954a7bbc267765696525e0849-22.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/72680bf954a7bbc267765696525e0849-22.html">
+	
+
+	<title>Codable conformance for ECS system revisisted | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-22" class="blog-entry"><h1 class="blog-entry-title">Codable conformance for ECS system revisisted</h1><div class="blog-entry-date">01-04-2020  Filed in: <span class="blog-entry-category"><a href="category-swift.html">Swift</a></span><span class="blog-entry-category"> | <a href="category-hexengine.html">HexEngine</a></span></div><div class="blog-entry-summary">In the post I <a href="https://www.thedreamweb.eu/blog/files/65809d1ba21f44a8d31d35dd38a9c6cd-17.html" target="_blank">demonstrated</a> a way of adding <code>Codable</code> conformance to the GameplayKit ECS system. For another game I'm working on (HexEngine, source here: <a href="https://github.com/maartene/HexEngine" target="_blank">https://github.com/maartene/HexEngine</a>) I experimented with a different solution, that I now feel is more elegant.<br /></div><div class="blog-entry-body"><br /><h3>The problem</h3><br />First, <code>Codable</code> is amazing! Second, more often than not, getting <code>Codable</code> conformance is just a matter of declaring the protocol in your type definition. Example:<br /><br /><pre><code><span class="type">Struct</span> <span class="type">MyStruct</span>: <span class="type">Codable</span> {<br />	&hellip;<br />}</code></pre><br />The automatic synthesis of <code>encode(to:)</code> and <code>decode(from:)</code> methods, fails when inheritance (classes) and protocols are involved, which is typically the case when you have an Entity Component System. <br /><br />Consider a <code>Component</code> protocol:<br /><br /><pre><code><span class="keyword">protocol</span> Component: <span class="type">Codable</span> {<br />    <span class="keyword">var</span> ownerID: <span class="type">UUID</span> { <span class="keyword">get</span> }<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">properties</span><br />    <span class="comment">//</span> <span class="comment">...</span><br />}</code></pre><br />Also, assume that all structures and classes that implement this protocol conform to <code>Codable</code>. <br /><br />And a <code>Unit</code> struct that retains (among others) a list of components:<br /><br /><pre><code><span class="keyword">struct</span> Unit: <span class="type">Codable</span> {<br />    <span class="keyword">var</span> array: [<span class="type">Component</span>]<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">properties</span><br />    <span class="comment">//</span> <span class="comment">...</span><br />}</code></pre><br />This will give the following error:<br /><br /><img class="imageStyle" alt="Schermafbeelding 2020-03-31 om 11.33.00" src="schermafbeelding-2020-03-31-om-11.33.00.png" width="929" height="99" /><br /><br />Why this behaviour? After some experimenting with instances of structs conforming to the <code>Component</code> protocol and the protocol itself, I finally found this error message:<br /><br /><img class="imageStyle" alt="Schermafbeelding 2020-03-31 om 11.38.05" src="schermafbeelding-2020-03-31-om-11.38.05.png" width="929" height="142" /><br /><br />The problem is when decoding. Swift can't decode to a protocol, because you can't make an instance of a protocol. <br /><br /><img class="imageStyle" alt="Schermafbeelding 2020-03-31 om 11.40.58" src="schermafbeelding-2020-03-31-om-11.40.58.png" width="929" height="100" /><br /><br />The array in <code>Unit</code> does not know about any concrete types, and the Swift compiler is smart enough to understand that instantiating of a protocol is not possible and thus decoding to a protocol is impossible. <br /><br />But I still want an array of <code>Components</code>. I don't want optionals for all possible components. I.e.:<br /><br /><pre><code><span class="keyword">struct</span> Unit: <span class="type">Codable</span> {<br />    <span class="keyword">var</span> buildComponent: <span class="type">BuildComponent</span>?<br />    <span class="keyword">var</span> attackComponent: <span class="type">AttackComponent</span>?<br />    <span class="keyword">var</span> healthComponent: <span class="type">HealthComponent</span>?<br />    ...<br />}</code></pre><br />HexEngine currently has 6 components. Not a lot, but this will grow over time, so this is not a very scalable solution. Especially if every component has something like an <code>update(in:)</code> method. <br /><br /><pre><code><span class="keyword">func</span> update(in world: <span class="type">World</span>) {<br />    buildComponent?.<span class="call">update</span>(in: world)<br />    attackComponent?.<span class="call">update</span>(in: world)<br />    healthComponent?.<span class="call">update</span>(in: world)<br />    ...<br />}</code></pre><br /><br />There has to be a better way&hellip;<br /><br /><h3>My solution: a ComponentWrapper enum</h3><br />The most elegant solution I found so far is using an <code>Enum</code> as a wrapper for the concrete types that conform the protocol. The <code>Enum</code> wraps the components using associated values. In my HexEngine for instance, I have a <code>ComponentWrapper</code> enum with the following cases:<br /><br /><pre><code><span class="keyword">enum</span> ComponentWrapper: <span class="type">Codable</span> {<br />    <span class="keyword">case</span> attackComponent(value: <span class="type">AttackComponent</span>)<br />    <span class="keyword">case</span> buildComponent(value: <span class="type">BuildComponent</span>)<br />    <span class="keyword">case</span> healthComponent(value: <span class="type">HealthComponent</span>)<br />    <span class="keyword">case</span> movementComponent(value: <span class="type">MovementComponent</span>)<br />    <span class="keyword">case</span> settlerComponent(value: <span class="type">SettlerComponent</span>)<br />    <span class="keyword">case</span> growthComponent(value: <span class="type">GrowthComponent</span>)<br />}</pre></code><br />This wrapper contains the members to conform to <code>Codable</code>:<br /><br />So, we need custom coding keys:<br /><pre><code><span class="keyword">enum</span> CodingKeys: <span class="type">CodingKey</span> {<br />    <span class="keyword">case</span> type<br />    <span class="keyword">case</span> value<br />}</code></pre><br />An <code>encode(to:)</code> function:<br /><br /><pre><code><span class="keyword">func</span> encode(to encoder: <span class="type">Encoder</span>) <span class="keyword">throws</span> {<br />    <span class="keyword">var</span> container = encoder.<span class="call">container</span>(keyedBy: <span class="type">CodingKeys</span>.<span class="keyword">self</span>)<br />    <span class="keyword">switch</span> <span class="keyword">self</span> {<br />    <span class="keyword">case</span> .<span class="dotAccess">attackComponent</span>(<span class="keyword">let</span> value):<br />        <span class="keyword">try</span> container.<span class="call">encode</span>(<span class="string">"attackComponent"</span>, forKey: .<span class="dotAccess">type</span>)<br />        <span class="keyword">try</span> container.<span class="call">encode</span>(value, forKey: .<span class="dotAccess">value</span>)<br />    <span class="keyword">case</span> .<span class="dotAccess">buildComponent</span>(<span class="keyword">let</span> value):<br />        <span class="keyword">try</span> container.<span class="call">encode</span>(<span class="string">"buildComponent"</span>, forKey: .<span class="dotAccess">type</span>)<br />        <span class="keyword">try</span> container.<span class="call">encode</span>(value, forKey: .<span class="dotAccess">value</span>)<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">cases</span><br />    ...<br />    }<br />}</code></pre><br />And a decode initializer:<br /><br /><pre><code><span class="keyword">init</span>(from decoder: <span class="type">Decoder</span>) <span class="keyword">throws</span> {<br />    <span class="keyword">let</span> values = <span class="keyword">try</span> decoder.<span class="call">container</span>(keyedBy: <span class="type">CodingKeys</span>.<span class="keyword">self</span>)<br />    <span class="keyword">let</span> type = <span class="keyword">try</span> values.<span class="call">decode</span>(<span class="type">String</span>.<span class="keyword">self</span>, forKey: .<span class="dotAccess">type</span>)<br />    <span class="keyword">switch</span> type {<br />    <span class="keyword">case</span> <span class="string">"attackComponent"</span>:<br />        <span class="keyword">let</span> value = <span class="keyword">try</span> values.<span class="call">decode</span>(<span class="type">AttackComponent</span>.<span class="keyword">self</span>, forKey: .<span class="dotAccess">value</span>)<br />        <span class="keyword">self</span> = .<span class="dotAccess">attackComponent</span>(value: value)<br />    <span class="keyword">case</span> <span class="string">"buildComponent"</span>:<br />        <span class="keyword">let</span> value = <span class="keyword">try</span> values.<span class="call">decode</span>(<span class="type">BuildComponent</span>.<span class="keyword">self</span>, forKey: .<span class="dotAccess">value</span>)<br />        <span class="keyword">self</span> = .<span class="dotAccess">buildComponent</span>(value: value)<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">cases</span><br />    ...<br />    <span class="keyword">default</span>:<br />        <span class="keyword">throw</span> <span class="type">ComponentWrapperErrors</span>.<span class="property">cannotConvertComponentError</span><br />    }<br />}</code></pre><br />Note that although the <code>ComponentWrapper</code> is now conformant to <code>Codable</code>, there is no way to convert between the wrapper and the actual components. To do so, we need two more functions:<br /><br />A function to wrap a component:<br /><br /><pre><code><span class="keyword">static</span> <span class="keyword">func</span> wrapperFor(<span class="keyword">_</span> component: <span class="type">Component</span>) <span class="keyword">throws</span> -&gt; <span class="type">ComponentWrapper</span> {<br />    <span class="keyword">if</span> <span class="keyword">let</span> c = component <span class="keyword">as</span>? <span class="type">AttackComponent</span> {<br />        <span class="keyword">return</span> .<span class="dotAccess">attackComponent</span>(value: c)<br />    } <span class="keyword">else</span> <span class="keyword">if</span> <span class="keyword">let</span> c = component <span class="keyword">as</span>? <span class="type">BuildComponent</span> {<br />        <span class="keyword">return</span> .<span class="dotAccess">buildComponent</span>(value: c)<br />    } <span class="keyword">else</span> <span class="keyword">if</span> <span class="keyword">let</span> c = component <span class="keyword">as</span>? ... other components {<br />        ...<br />    } <span class="keyword">else</span> {<br />        <span class="keyword">throw</span> <span class="type">ComponentWrapperErrors</span>.<span class="property">cannotConvertComponentError</span><br />    }<br />}</code></pre><br />And a function to get the component back from the wrapper:<br /><br /><pre><code><span class="keyword">func</span> component() <span class="keyword">throws</span> -&gt; <span class="type">Component</span> {<br />    <span class="keyword">switch</span> <span class="keyword">self</span> {<br />    <span class="keyword">case</span> .<span class="dotAccess">attackComponent</span>(<span class="keyword">let</span> component):<br />        <span class="keyword">return</span> component<br />    <span class="keyword">case</span> .<span class="dotAccess">buildComponent</span>(<span class="keyword">let</span> component):<br />        <span class="keyword">return</span> component<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">cases</span><br />    ...<br />    }<br />}</code></pre><br />Note again that this requires that all the types you want to wrap also conform to <code>Codable</code>. If the component only contains properties that all automatic synthesizing of <code>Codable</code> conformance, this is a trivial activity. Otherwise, it requires the regular dance of setting <code>CodingKeys</code> and manually implementing <code>encode(to:)</code> and <code>decode(from:)</code>.<br /><br /><h3>Using the ComponentWrapper</h3><br />Let's go back to our Unit struct:<br /><br /><pre><code><span class="keyword">struct</span> Unit: <span class="type">Codable</span> {<br />    <span class="keyword">var</span> components: [<span class="type">Component</span>]<br />    <span class="comment">//</span> <span class="comment">other</span> <span class="comment">properties</span><br />    <span class="comment">//</span> <span class="comment">...</span><br />}</code></pre><br />Creating the <code>ComponentWrapper</code> enum alone does not automatically make <code>Unit</code> conform to <code>Codable</code>. Unit still requires a custom <code>Codable</code> implementation, because we need to bridge from <code>Component</code> to <code>ComponentWrapper</code>:<br /><br /><pre><code><span class="keyword">extension</span> <span class="type">Unit</span>: <span class="type">Codable</span> {               <span class="comment">//</span> <span class="comment">Simplified,</span> <span class="comment">actual</span> <span class="comment">struct</span> <span class="comment">contains</span> <span class="comment">more</span> <span class="comment">properties</span><br />    <span class="comment">//</span> <span class="comment">First,</span> <span class="comment">we</span> <span class="comment">need</span> <span class="comment">a</span> <span class="comment">custom</span> <span class="comment">CodingKeys</span> <span class="comment">enum</span><br />    <span class="keyword">enum</span> CodingKeys: <span class="type">CodingKey</span> {<br />        <span class="keyword">case</span> id<br />        <span class="keyword">case</span> components<br />    }<br /><br />    <span class="comment">//</span> <span class="comment">Custom</span> <span class="comment">encode</span> <span class="comment">function:</span><br />    <span class="keyword">func</span> encode(to encoder: <span class="type">Encoder</span>) <span class="keyword">throws</span> {<br />        <span class="keyword">var</span> container = encoder.<span class="call">container</span>(keyedBy: <span class="type">CodingKeys</span>.<span class="keyword">self</span>)<br />        <span class="keyword">try</span> container.<span class="call">encode</span>(id, forKey: .<span class="dotAccess">id</span>)<br />        <br />        <span class="comment">//</span> <span class="comment">convert</span> <span class="comment">the</span> <span class="comment">[Component]</span> <span class="comment">array</span> <span class="comment">to</span> <span class="comment">a</span> <span class="comment">[WrappedComponent]</span> <span class="comment">array.</span><br />        <span class="keyword">let</span> wrappedComponents = <span class="keyword">try</span> components.<span class="call">map</span> { component <span class="keyword">in</span> <span class="keyword">try</span> <span class="type">ComponentWrapper</span>.<span class="call">wrapperFor</span>(component) }<br />        <span class="comment">//</span> <span class="comment">encode</span> <span class="comment">the</span> <span class="comment">[WrappedComponent]</span> <span class="comment">array.</span><br />        <span class="keyword">try</span> container.<span class="call">encode</span>(wrappedComponents, forKey: .<span class="dotAccess">components</span>)<br />    }<br />    <br />    <span class="comment">//</span> <span class="comment">Custom</span> <span class="comment">decode</span> <span class="comment">initializer</span><br />    <span class="keyword">init</span>(from decoder: <span class="type">Decoder</span>) <span class="keyword">throws</span> {<br />        <span class="keyword">let</span> values = <span class="keyword">try</span> decoder.<span class="call">container</span>(keyedBy: <span class="type">CodingKeys</span>.<span class="keyword">self</span>)<br />        id = <span class="keyword">try</span> values.<span class="call">decode</span>(<span class="type">UUID</span>.<span class="keyword">self</span>, forKey: .<span class="dotAccess">id</span>)<br /><br />        <span class="comment">//</span> <span class="comment">decode</span> <span class="comment">the</span> <span class="comment">[WrappedComponent]</span> <span class="comment">array</span><br />        <span class="keyword">let</span> wrappedComponents = <span class="keyword">try</span> values.<span class="property">decode</span>([<span class="type">ComponentWrapper</span>].<span class="keyword">self</span>, forKey: .<span class="dotAccess">components</span>)<br />        <span class="comment">//</span> <span class="comment">convert</span> <span class="comment">the</span> <span class="comment">[WrappedComponent]</span> <span class="comment">array</span> <span class="comment">to</span> <span class="comment">a</span> <span class="comment">[Component]</span> <span class="comment">array</span><br />        components = <span class="keyword">try</span> wrappedComponents.<span class="call">map</span> { wrappedComponent <span class="keyword">in</span> <span class="keyword">try</span> wrappedComponent.<span class="call">component</span>() }<br />    }<br />}</code></pre><br /><br />There's a lot more to say about the ECS system I use in HexEngine. There is a lot more to say about "Codable" wrappers: I also use a <code>CommandWrapper</code> to be able to load/save commands. And I also wrote a simple "AnyWrapper" you can use (<a href="https://gist.github.com/maartene/94ccc4981ceae1daf51762f1e4d635b3" target="_blank">https://gist.github.com/maartene/94ccc4981ceae1daf51762f1e4d635b3</a>), for instance to encode/decode a <code>[String: Any]</code> dictionary.</div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>

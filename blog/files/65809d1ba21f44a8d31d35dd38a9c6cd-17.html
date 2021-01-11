@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/65809d1ba21f44a8d31d35dd38a9c6cd-17.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/65809d1ba21f44a8d31d35dd38a9c6cd-17.html">
+	
+
+	<title>Loading and saving a game: GameplayKit and Codable protocol | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-17" class="blog-entry"><h1 class="blog-entry-title">Loading and saving a game: GameplayKit and Codable protocol</h1><div class="blog-entry-date">09-01-2019  Filed in: <span class="blog-entry-category"><a href="category-experiments.html">Experiments</a></span></div><div class="blog-entry-summary"><a href="https://developer.apple.com/documentation/gameplaykit" target="_blank">GameplayKit</a> is an Apple provided SDK that contains among others an easy-to-use Entity-Component system. I'm using it in a Roguelike I'm working on in my spare time, which I use to get a better grasp on developing in Swift. <br /><br />While development in Swift with the Apple provided libraries is generally smooth sailing, getting saving and loading working was a lot more work. While most other features take me a few <em>hours</em> to implement, this one has taken <em>days</em>. This was mainly due to my lack of understanding of GameplayKit and (the limits) of protocol extension in particular. Because I could not found much (not enough for me?) information on this subject online, I'm sharing my experiences and solution here.<br /><br />By no means is my solution the best, but at least it works. If you know of a better solution, the please let me know.<br /><br /></div><div class="blog-entry-body"><h3>Archiving state in Swift</h3><br />In general, saving and loading a game means saving and loading the state of a bunch of objects in your game. Saving and loading state of objects sounds a lot like serialization and archiving and fortunately Swift has some ready made solutions to do so. <br /><br />In particular, the <a href="https://developer.apple.com/documentation/swift/codable" target="_blank">Codable</a> protocol provides a standardized way of archiving and de-archiving objects. If you carefully design your data model, this can be as simple as adding the "Codable" protocol in the data type definition:<br /><br /><pre><code><span class="keyword">struct</span> Map: <span class="type">Codable</span> {<br />    <br />    <span class="keyword">let</span> width, height: <span class="type">Int</span><br />    <span class="keyword">var</span> cells: [<span class="type">Tile</span>]</code></pre><br />That's right: the compiler will create the required functions for you.<br /><br />As all the relevant game state of my game is contained within an instance of the <code>World</code> class, my initial approach was to sprinkle Codable declarations around until the compiler stopped complying about missing <code>Codable</code> compliance. This approach actually got me more than half way! After about an hour or so, I had a pretty good looking JSON file describing about 70% of the world. So how much more work could it be to also get it to include the final 30% of relevant state?<br /><br /><h3>Missing in the archived representation</h3><br />The missing 30% of the relevant state can be divided into two different problems:<br /><br /><ol class="arabic-numbers"><li>The Entity Component system in GameplayKit (<a href="https://developer.apple.com/documentation/gameplaykit/gkentity" target="_blank">GKEntity</a> and <a href="https://developer.apple.com/documentation/gameplaykit/gkcomponent" target="_blank">GKComponent</a>) does not conform the the <code>Codable</code> protocol;</li><li>The Codable protocol has no built in solution for polymorphism (not that I'm aware of anyway).</li></ol><br />Let's tackle both problems one at a time (although they are related as we will see).<br /><br /><h3>Getting GameplayKit to conform to Codable</h3><br />For me, this meant two things. First, I was using a subclass of <code>GKEntity</code> (<code>RLEntity</code>) in my game to represent all entities in the game (currently: player, monsters and items). Getting the subclass to conform to <code>Codable</code> was very easy: I just declared the class as conforming to <code>Codable</code>. This archived most of the relevant state out of the box. However, the components that are associated with the entity were not archived.<br /><br />As you can access the components that are associated with an instance of <code>GKEntity</code> in the <code>components: [GKComponent]</code> array, my initial approach was to also make <code>GKComponent</code> conform to <code>Codable</code>. I preferred not to subclass <code>GKComponent</code>, just to make it conform to <code>Codable</code>, as there was not anything special I wanted from <code>GKComponent</code> (logic is in further subclasses like <code>HealthComponent</code>, <code>FighterComponent</code> and <code>AIComponent</code>) other than Codable conformance. And also, Swift has a better way of adding protocol conformance to an existing type: <a href="https://docs.swift.org/swift-book/LanguageGuide/Extensions.html" target="_blank">Extensions</a>.<br /><br />I already used an extension to <code>GKComponent</code> to be able to quickly get the owning <code>RLEntity</code>, so my first instinct was to use the same pattern to add <code>Codable</code> conformance:<br /><br /><pre><code><span class="keyword">extension</span> <span class="type">GKComponent</span>: <span class="type">Codable</span> {<br />    <br />}</code></pre><br />However, this would have been too easy:<br /><img class="imageStyle" alt="" src="Schermafbeelding 2019-01-09 om 12.47.20.png" width="700" height="87" /><br /><br />No worries, to conform to <code>Codable</code>, you only need to implement two functions:  <code>func encode(to encoder: Encoder)</code>and <code>init(from decoder: Decoder)</code>. Implementing <code>encode(to: )</code> is pretty straight forward, but implementing <code>init(from: )</code> isn't:<br /><br /><img class="imageStyle" alt="" src="Schermafbeelding 2019-01-09 om 12.53.23.png" width="700" height="143" /><br /><br /><ul class="disc"><li>As there is no way I can access the original source file of GKComponent, there is no way I can use an extension to declare the required initializer. I've tried several ways to fix this error:</li></ul><ul class="disc"><li>creating a convenience initializer (as per the "Fix" button). This silences the issues, but does not provide protocol conformance;</li><li>adding the initialized in all subclasses go <code>GKComponent</code> (and making those conform to <code>Codable</code>). Now I have all this duplicate code and still can't rely on encoding the components array in <code>GKEntity</code>;</li><li>migrate to using <code><a href="https://developer.apple.com/documentation/foundation/nscoder" target="_blank">NSCoder</a></code> instead of <code>Codable</code>. This however only works for classes, but not structs (which I also have);</li><li>I even started working on my own entity-component system that supported <code>Codable</code> from the get go. I quickly abandoned it. Not because it was difficult, but felt like the worst solution: IMHO it's only a matter of time before GameplayKit support <code>Codable</code> out of the box. Sticking with GameplayKit would mean some working around now, but set me up better for the future. </li></ul><br />In the end, the only usable solution I could find was to subclass <code>GKComponent</code> into an (abstract) class <code>RLComponent</code> and make the subclass conform to <code>Codable</code>. All concrete classes now subclass from <code>RLComponent</code> instead of <code>GKComponent</code>. Apart from not being very "Swift-like", it adds another layer of indirection because entities will have a member <code>components: [GKComponent]</code> and not <code>[RLComponent]</code>.<br /><br />This solution at least solves one part of the problem: it is now possible to encode all the components associated with an entity into a JSON file. Do note, this requires you to cast all components to RLComponent manually. Something like:<br /><br /><pre><code><span class="keyword">var</span> rlComponents = [<span class="type">RLComponent</span>]()<br /><span class="keyword">for</span> component <span class="keyword">in</span> components {<br />    rlComponents.<span class="call">append</span>(component <span class="keyword">as</span>! <span class="type">RLComponent</span>)<br />}<br /><span class="keyword">try</span> container.<span class="call">encode</span>(rlComponents, forKey: .<span class="dotAccess">components</span>)</code></pre><br />Concrete subclasses of RLComponent that contain additional data can override the <code>encode(to: )</code> method that <code>RLComponent</code> provides. When encoding the components from an entity they show in the resulting JSON file. So far so good&hellip;<br /><br /><h3>Polymorphism and Codable protocol</h3><br />The encoding of the components array in <code>GKEntity</code> (and therefore also <code>RLEntity</code>) already shows working polymorphism: the concrete component subclasses can provide their own <code>encode(to: ) </code>function that gets correctly called when iterating over the components array. So where is the problem?<br /><br />The problem is in decoding.<br />The resulting JSON does not contain type information. Therefore, when decoding, we don't know what type we are decoding. We have to specify the type that we want to decode.<br /><br />My first attempt to decode did something like this:<br /><br /><pre><code><span class="keyword">required</span> <span class="keyword">init</span>(from decoder: <span class="type">Decoder</span>) <span class="keyword">throws</span> {<br />    <br />    <span class="keyword">let</span> values = <span class="keyword">try</span> decoder.<span class="call">container</span>(<br />    	keyedBy: <span class="type">CodingKeys</span>.<span class="keyword">self</span>)<br />    <br />    <span class="comment">//</span> <span class="comment">decode</span> <span class="comment">other</span> <span class="comment">properties</span><br />    <br />    <span class="keyword">super</span>.<span class="call">init</span>()<br />    <br />    <span class="keyword">let</span> rlComponents = <span class="keyword">try</span> values.<span class="property">decode</span>([<span class="type">RLComponent</span>].<span class="keyword">self</span>, <br />        forKey: .<span class="dotAccess">components</span>)<br />    rlComponents.<span class="call">forEach</span> { <span class="keyword">self</span>.<span class="property">addComponent</span>($<span class="number">0</span>) }<br />    <br />}</code></pre><br />This <em>almost</em> works. The one issue is that you lose concrete types. I.e. you will an instance of <code>RLComponent</code> for every component you decode, but you will have lost whether they were <code>HealthComponent</code>, <code>FighterComponent</code>, <code>InventoryComponent</code>, &hellip; Because Swift has no way of knowing what subtype it should decode as.<br /><br />This is immediately clear for the components, but it happens everywhere you have an array of some generic type that is filled with instances of subtypes of that generic type. For instance, it happens also in my <code>World</code> class that has an array of all the entities in the game:<br /><br /><pre><code><span class="keyword">var</span> entities: [<span class="type">RLEntity</span>]</code></pre><br />This array contains instances of <code>RLEntity</code>, as well as instances of subclasses of <code>RLEntity</code> such as <code>Player</code> and <code>Item</code>. Although encoding preserves all the additional data we have in the subclasses, after decoding we only have instances of <code>RLEntity</code>. Unfortunately, I found only one approach for this issues and that is to encode the type of instance together with all the data for that instance. <br /><br />To do so, I use a two step approach:<br /><ol class="arabic-numbers"><li>First, I make a dictionary that maps from the concrete type (as a string) to the encoded objects data (as a base64 string): <code>[String, [String]]</code>.</li><li>Then, I encode the resulting dictionary as the actual save data.</li></ol><br />In encoding, this looks like:<br /><br /><pre><code><span class="keyword">var</span> codeEntities = [<span class="type">String</span>: [<span class="type">String</span>]]()<br /><span class="keyword">for</span> entity <span class="keyword">in</span> entities {<br />    <span class="keyword">let</span> typeName = <span class="type">String</span>(describing: <span class="call">type</span>(of: entity))<br />    <span class="keyword">let</span> newCoder = <span class="type">JSONEncoder</span>()<br />    <span class="keyword">let</span> data = <span class="keyword">try</span> newCoder.<span class="call">encode</span>(entity)<br />    <br />    <span class="keyword">if</span> codeEntities.<span class="property">keys</span>.<span class="call">contains</span>(typeName) == <span class="keyword">false</span> {<br />        codeEntities[typeName] = [<span class="type">String</span>]()<br />    }<br />    codeEntities[typeName]?.<span class="call">append</span>(data.<span class="call">base64EncodedString</span>())<br />}<br /><br /><span class="keyword">try</span> container.<span class="call">encode</span>(codeEntities, forKey: .<span class="dotAccess">entities</span>)</code></pre><br />When decoding, this looks like:<br /><br /><pre><code><span class="keyword">let</span> loadedEntities = <span class="keyword">try</span> values.<span class="property">decode</span>([<span class="type">String</span>: [<span class="type">String</span>]].<span class="keyword">self</span>, <br />    forKey: .<span class="dotAccess">entities</span>)<br /><br /><span class="keyword">let</span> newDecoder = <span class="type">JSONDecoder</span>()<br /><span class="keyword">for</span> type <span class="keyword">in</span> loadedEntities.<span class="property">keys</span> {<br />    <span class="keyword">let</span> loadedEntityArray = loadedEntities[type]!<br />    <span class="keyword">switch</span> type {<br />    <span class="keyword">case</span> <span class="string">"Item"</span>:<br />        <span class="keyword">for</span> loadedEntity <span class="keyword">in</span> loadedEntityArray {<br />            <span class="keyword">let</span> item = <span class="keyword">try</span> newDecoder.<span class="call">decode</span>(<span class="type">Item</span>.<span class="keyword">self</span>, <br />                from: <span class="type">Data</span>(base64Encoded: loadedEntity)!)<br />            entities.<span class="call">append</span>(item)<br />        }<br />        <br />    <span class="keyword">default</span>:<br />        <span class="keyword">for</span> loadedEntity <span class="keyword">in</span> loadedEntityArray {<br />            <span class="keyword">let</span> rlEntity = <span class="keyword">try</span> newDecoder.<span class="call">decode</span>(<span class="type">RLEntity</span>.<span class="keyword">self</span>, <br />                from: <span class="type">Data</span>(base64Encoded: loadedEntity)!)<br />            entities.<span class="call">append</span>(rlEntity)<br />        }<br />    }<br />}</code></pre><br />Note: in case you know that you only want to encode one of any concrete type (which is the case for components), then you can simplify the code somewhat by using a dictionary that maps from type (as string) to encoded object (as base64 string): <code>[String: String]</code> <br /><br />As far as I can see, this approach has one big disadvantage: when you encode like this, you will get base64 in your JSON. Now, Swift don't care, but it looks like this:<br /><br /><img class="imageStyle" alt="" src="Schermafbeelding 2019-01-09 om 15.05.14.png" width="575" height="454" /><br /><br />You will need to use a <a href="https://www.base64decode.org" target="_blank">base64</a> converter to see exactly what was encoded (encoded). If you know a way how you can preserve readable JSON, I'd be very happy to hear from you.<br /><br /><h3>Conclusion</h3><br />So, does this work? Yep it does:<br /><img class="imageStyle" alt="" src="rl save load gameplay.gif" width="800" height="450" /><br /><br />I find it a reasonably elegant solution because I can still use the auto-synthesis functions from <code>Codable</code> where available. I also get a JSON file describing the game state I can mostly read or use a base64 converter to look into further. <br /><br />I hope that Apple adds direct support for polymorphism in the future. That would be the most important improvement. I can live with rolling my own subclasses of <code>GKComponent</code> and <code>GKEntity</code> to provide Codable conformance. <br /></div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>

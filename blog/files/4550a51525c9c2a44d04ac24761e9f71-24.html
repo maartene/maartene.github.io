@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="referrer" content="same-origin" />
+		<meta name="robots" content="index, follow" />
+		<meta name="generator" content="RapidWeaver" />
+		<link rel="apple-touch-icon" sizes="180x180" href="https://www.thedreamweb.eu/resources/large.png" />
+<link rel="apple-touch-icon" sizes="167x167" href="https://www.thedreamweb.eu/resources/medium.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/logo_64px.png" sizes="64x64" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_medium.png" sizes="32x32" />
+<link rel="apple-touch-icon" sizes="152x152" href="https://www.thedreamweb.eu/resources/small.png" />
+<link rel="icon" type="image/png" href="https://www.thedreamweb.eu/resources/favicon_small.png" sizes="16x16" />
+
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="@maarten_engels">
+	<meta name="twitter:creator" content="@maarten_engels">
+	<meta name="twitter:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta name="twitter:url" content="https:/maartene.github.io/blog/files/4550a51525c9c2a44d04ac24761e9f71-24.html">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="thedreamweb.eu">
+	<meta property="og:image" content="https://maartene.github.io/resources/banner_background.png">
+	<meta property="og:url" content="https:/maartene.github.io/blog/files/4550a51525c9c2a44d04ac24761e9f71-24.html">
+	
+
+	<title>Pseudo random number generation using a hash function | Devlog | thedreamweb.eu</title>
+	<link rel="stylesheet" type="text/css" media="all" href="../../rw_common/themes/Future/consolidated-3.css?rwcache=632048786" />
+		
+	
+	 <style type="text/css" media="all">/**
+ *  Example CSS file that can be used to style Splash HTML output
+ *  Copyright (c) John Sundell 2018
+ *  MIT license - see LICENSE.md
+ */
+
+pre {
+    margin-bottom: 1.5em;
+    background-color: #1a1a1a;
+    padding: 16px 0;
+    border-radius: 16px;
+}
+
+pre code {
+    font-family: monospace;
+    display: block;
+    padding: 0 20px;
+    color: #a9bcbc;
+    line-height: 1.4em;
+    font-size: 0.95em;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre code .keyword {
+    color: #e73289;
+}
+
+pre code .type {
+    color: #8281ca;
+}
+
+pre code .call {
+    color: #348fe5;
+}
+
+pre code .property {
+    color: #21ab9d;
+}
+
+pre code .number {
+    color: #db6f57;
+}
+
+pre code .string {
+    color: #fa641e;
+}
+
+pre code .comment {
+    color: #6b8a94;
+}
+
+pre code .dotAccess {
+    color: #92b300;
+}
+
+pre code .preprocessing {
+    color: #b68a00;
+}
+</style>  <link rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog" href="https://maartene.github.io/blog/files/feed.xml" />
+<script type="text/javascript" async src="https://maartene.github.io/blog/files/meta.js"></script>
+
+</head>
+
+<!-- This page was created with RapidWeaver from Realmac Software. http://www.realmacsoftware.com -->
+
+<body>
+	<nav class="navbar navbar-expand-lg">
+		<div class="container">
+			<a class="navbar-brand" href="https://maartene.github.io/"><img src="../../rw_common/images/logo.png" width="71" height="70" alt="d{"/> <span class="navbar-title">Development Blog</span></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+			 aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+			</div>
+		</div>
+	</nav>
+
+	<header class="hero" id="hero">
+        <div class="hero-background"></div>
+		<div class="hero-overlay"></div>
+		<h1 class="hero-title">
+			Development Blog
+			<em>(semi)random.thoughts()</em>
+		</h1>
+	</header>
+
+	<div class="content">
+		<section class="main" style="position: relative;">
+			<div class="container">
+                <div class="row">
+                    <div class="col-sm-9 main">
+                        	
+	<div class="blog-archive-entries-wrapper">
+		<div id="unique-entry-id-24" class="blog-entry"><h1 class="blog-entry-title">Pseudo random number generation using a hash function</h1><div class="blog-entry-date">11-01-2021  Filed in: <span class="blog-entry-category"><a href="category-swift.html">Swift</a></span></div><div class="blog-entry-summary">What if you want to generate random numbers, in a deterministic way and be able to restore the RNGs state? Maybe rolling your own using a hash function and conforming to `RandomNumberGenerator` is the way to go? Its the way I did it for my roguelike game.<br /></div><div class="blog-entry-body"><h3>Introduction</h3><br />My <a href="https://github.com/maartene/HexEngine" target="_blank">Roguelike SpriteKit game</a> features procedurally generated loot. One source of loot is killing enemies.<br /><br />One thing I noticed when I was using the GameplayKit random number generators (RNGs), is that it can be beneficial to save just before an encounter and reload if you want to try and get better loot. (this is generally called 'save scumming')<br /><br /><h3>The problem</h3><br />The RNGs in GameplayKit are deterministic, in that for every initial value ('seed'), they return the exact same sequence of numbers. This is different from using something like <code>Int.random(in: 1...6)</code> that doesn't use a fixed seed and gives a different result every time it's run.<br /><img class="imageStyle" alt="Schermafbeelding 2021-01-11 om 09.14.11" src="schermafbeelding-2021-01-11-om-09.14.11.png" width="847" height="314" /><br /><br />As you can see, the Int.random sequence changes with every result. The GameplayKit sequence is only dependent on the seed.<br /><br />In the game, the save scumming worked, because after loading the RNG in the loot provider was reset to it's initial seed. This means that if you get a bad roll on a loot drop, you can reload and get a roll based on the first random number for the seed that was chosen for the loot dropper (which is for now hard coded). So you more or less could only save scumm once: every reload would give the same result. In the design of this game, this is still unintended behaviour. What if your the very first roll is awesome and you could use the same roll over and over again? Also, apart from world generation, the game is completely deterministic, meaning that only your choices have an impact on outcome. Loading for re-rolls does not fit that design.<br /><br /><h3>Requirement</h3><br />What I needed was a way to save the progress in the random sequence when saving the game. So after loading, the RNG would be in the same state as before save. This would make sure it always gives the same result for the same actions. Unfortunately GameplayKit does not offer this because the <code>seed</code> property of the <code>GKRandomSource</code> always holds the initial seed, not the current 'position' in the sequence. There is no way of retrieving these.<br /><br />GKRandomSource does provide a function (<code>dropValues(_ count:)</code>) to drop a certain number of results. This would make it possible to move to a certain location in the sequence, by dropping all the numbers you don't need. One possible solution would be to keep count of the number of random numbers generated, saving that and then when loading dropping all the numbers before the position you need.<br /><br />I chose not to use this solution for three reasons:<br /><ol class="arabic-numbers"><li>It's wasteful to generate possibly a large number of random numbers, only to 'drop' them;</li><li>There is no built in way to determine how many numbers were generated. So, you need to programatically keep track in some counter. If you miss one random number generation, you lose determinism;</li><li>There is a simple solution: using a (pure) function.</li></ol><br /><h3>The solution</h3><br />I chose the solution presented in: <a href="https://www.youtube.com/watch?v=LWFzPP8ZbdU" target="_blank">Math for Game Programmers: Noise-Based RNG</a> This video also has a great explanation about random number generators in general. The issues you might face when using them (mine is just an example) and goes into a lot more detail on how to make more sophisticated once. Highly recommended.<br /><br />The Swift standard library contains the <code>RandomNumberGenerator</code> protocol. When you use something like <code>Int.random(in:)</code> or <code>Array.shuffle()</code>, you implicitly use the System Random Number Generator that conform to this protocol. These functions however, allow you to choose any RNG, as long as it conforms to <code>RandomNumberGenerator</code>. <br /><br />Lets say you have an instance of your own RNG that conforms to this protocol, you can then use it by passing it by reference into the <code>Int.random</code>, <code>Array.shuffle</code>, etc. functions. Instead of writing <code>Int.random(in: 1...6)</code> you would write <code>Int.random(in: 1...6, using: &rng)</code>.<br /><br />Conforming to this protocol has one requirement, implementing a function: <code>mutating func next() -> UInt64</code>.<br /><br />I chose to use the hash function of the video (timestamp: 44:48) to implement my own RNG. It's a very simple Struct:<br /><br /><pre><code><br /><span class="keyword">struct</span> PRNG: <span class="type">RandomNumberGenerator</span> {<br />    <span class="keyword">var</span> seed: <span class="type">UInt64</span><br />    <br />    <span class="comment">//</span> <span class="comment">This</span> <span class="comment">RNG</span> <span class="comment">function</span> <span class="comment">uses</span> <span class="comment">Squirrel</span> <span class="comment">Eiserloh's</span> <span class="comment">hash</span> <span class="comment">function</span> <span class="comment">to</span> <span class="comment">generate</span> <span class="comment">"random"</span> <span class="comment">numbers.</span><br />    <span class="keyword">mutating</span> <span class="keyword">func</span> next() -&gt; <span class="type">UInt64</span> {<br />        seed = <span class="type">Squirrel3</span>(seed)<br />        <span class="keyword">return</span> seed<br />    }<br />}<br /></code></pre><br /><br />All it does is call the Squirrel3 function and saves the result in the seed. Because this number is exposed to the outside world, I can very easily load and save it and go to the *exact* position in the sequence when saving.<br /><br />For the Squirrel3 function, I tried two options. A Swift based one and a C based one. In the game I stuck with the C based one because it was 4x faster. However, using C in a Swift project does mean more work with bridging header files, regular header files, assigning files to projects. Always a bit tricky. If you don't mind the performance penalty, using a pure Swift implementation might be preferable.<br /><br />The C function I ended up with is this:<br /><br /><pre><code><br />uint64_t Squirrel3( uint64_t position ) {<br />    const uint64_t BIT_NOISE1 = 0xB5297A4DB5297A4D;<br />    const uint64_t BIT_NOISE2 = 0x68E31DA468E31DA4;<br />    const uint64_t BIT_NOISE3 = 0x1B56C4E91B56C4E9;<br />    <br />    uint64_t mangled = position;<br />    mangled *= BIT_NOISE1;<br />    mangled ^= (mangled >> 8);<br />    mangled += BIT_NOISE2;<br />    mangled ^= (mangled << 8);<br />    mangled *= BIT_NOISE3;<br />    mangled ^= (mangled >> 8);<br />    return mangled;<br />}<br /></code></pre><br /><br />(the function is converted to use 64-bit unsigned Ints, because that is what the <code>RandomNumberGenerator</code> required. The BIT_NOISEs are all large 64 bit prime numbers.)<br /><br />Equivalent Swift version:<br /><pre><code><br /><span class="keyword">func</span> Squirrel3( position: <span class="type">UInt64</span> ) -&gt; <span class="type">UInt64</span> {<br />    <span class="keyword">let</span> <span class="type">BIT_NOISE1</span>: <span class="type">UInt64</span> = 0xB5297A4DB5297A4D;<br />    <span class="keyword">let</span> <span class="type">BIT_NOISE2</span>: <span class="type">UInt64</span> = 0x68E31DA468E31DA4;<br />    <span class="keyword">let</span> <span class="type">BIT_NOISE3</span>: <span class="type">UInt64</span> = 0x1B56C4E91B56C4E9;<br />    <br />    <span class="keyword">var</span> mangled: <span class="type">UInt64</span> = position;<br />    mangled = mangled.<span class="call">multipliedReportingOverflow</span>(by: <span class="type">BIT_NOISE1</span>).<span class="property">partialValue</span>;<br />    mangled ^= (mangled &gt;&gt; <span class="number">8</span>);<br />    mangled = mangled.<span class="call">addingReportingOverflow</span>(<span class="type">BIT_NOISE2</span>).<span class="property">partialValue</span>;<br />    mangled ^= (mangled &lt;&lt; <span class="number">8</span>);<br />    mangled = mangled.<span class="call">multipliedReportingOverflow</span>(by: <span class="type">BIT_NOISE3</span>).<span class="property">partialValue</span><br />    mangled ^= (mangled &gt;&gt; <span class="number">8</span>);<br />    <span class="keyword">return</span> mangled;<br />}<br /></code></pre><br /><br />The reason the C version is faster is because C does not care about Integer overflow. In Swift you can only create a functional like this, if you use a safe functions like <code>multipliedReporingOverflow</code> and <code>addingReportingOverflow</code>.<br /><br /><h3>Testing</h3><br />I've tested the PRNG in the game to see whether it provides reasonable results (it does). Also, I tested whether it solved the 'save scumming' issue (it does).<br />I also tested its randomness in a more rigourous way. The project contains four tests (<code>PRNGTests.swift</code>):<br /><ul class="disc"><li>Flip a coin 1 million times. The number of heads should be less than 2 times the standard deviation from the expected value;</li><li>Test whether any 'cycle' occurs within 1 million generated numbers, i.e. repeat itself. I have not found any repeat cycle within 1 million generated numbers yet;</li><li>Test whether any number gives itself as a result (for any natural number <= 1 million);</li><li>Test whether the hash function gives the same result for two different numbers. This doesn't happen for number 0 ..< 1 million. </li></ul>The RNG passes all these test.<br />Note: the reason for capping these tests at a million is that these are part of the projects Unit Test suite. I don't want to wait ages for the test suite to finish. Feel free to try larger samples.<br /><br /><h3>Further developments</h3><br />One thing this RNG does not have is a proper seed. The 'seed' in the RNG only 'teleports' you to a specific position in the RNG sequence. The sequence itself is still the same though. For this game, I don't consider this an issue (yet). However, you might want to look into the linked video for a solution to introduce an actual seed in this RNG. Thus making sure you can choose different sequences of random numbers.<br /><br /><h3>Conclusion</h3><br />RNG's used to be a black box for me. Something I never bothered looking into myself. I only ever used them. Still, it's cool coding one myself. Especially considering how easy Swift makes it to use it afterwards. </div></div>
+	</div>
+	
+
+                    </div>
+
+                    <div class="col-sm-3 sidebar">
+                        <h2></h2>
+                         <div id="blog-categories"><a href="category-alakajam.html" class="blog-category-link-enabled">Alakajam</a><br /><a href="category-experiments.html" class="blog-category-link-enabled">Experiments</a><br /><a href="category-hexengine.html" class="blog-category-link-enabled">HexEngine</a><br /><a href="category-ink.html" class="blog-category-link-enabled">Ink</a><br /><a href="category-ludum-dare.html" class="blog-category-link-enabled">Ludum Dare</a><br /><a href="category-rpg.html" class="blog-category-link-enabled">RPG</a><br /><a href="category-space-sim.html" class="blog-category-link-enabled">Space Sim</a><br /><a href="category-spritekit.html" class="blog-category-link-enabled">SpriteKit</a><br /><a href="category-swift.html" class="blog-category-link-enabled">Swift</a><br /><a href="category-vapor.html" class="blog-category-link-enabled">Vapor</a><br /><a href="category-zen-bwv.html" class="blog-category-link-enabled">Zen BWV</a><br /></div><div id="blog-archives"><a class="blog-archive-link-enabled" href="archive-january-2021.html">January 2021</a><br /><a class="blog-archive-link-enabled" href="archive-april-2020.html">April 2020</a><br /><a class="blog-archive-link-enabled" href="archive-december-2019.html">December 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2019.html">October 2019</a><br /><a class="blog-archive-link-enabled" href="archive-june-2019.html">June 2019</a><br /><a class="blog-archive-link-enabled" href="archive-january-2019.html">January 2019</a><br /><a class="blog-archive-link-enabled" href="archive-october-2018.html">October 2018</a><br /><a class="blog-archive-link-enabled" href="archive-september-2018.html">September 2018</a><br /><a class="blog-archive-link-enabled" href="archive-august-2018.html">August 2018</a><br /><a class="blog-archive-link-enabled" href="archive-july-2018.html">July 2018</a><br /><a class="blog-archive-link-enabled" href="archive-december-2017.html">December 2017</a><br /><a class="blog-archive-link-enabled" href="archive-july-2017.html">July 2017</a><br /><a class="blog-archive-link-enabled" href="archive-march-2017.html">March 2017</a><br /><a class="blog-archive-link-enabled" href="archive-february-2017.html">February 2017</a><br /><a class="blog-archive-link-enabled" href="archive-january-2017.html">January 2017</a><br /><a class="blog-archive-link-enabled" href="archive-october-2016.html">October 2016</a><br /><a class="blog-archive-link-enabled" href="archive-august-2016.html">August 2016</a><br /><a class="blog-archive-link-enabled" href="archive-july-2016.html">July 2016</a><br /></div><div id="blog-rss-feeds"><a class="blog-rss-link" href="feed.xml" rel="alternate" type="application/rss+xml" title="thedreamweb.eu Devlog">RSS Feed</a><br /></div>
+                    </div>
+                </div>
+			</div>
+		</section>
+	</div>
+
+	<div class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<ul class="navbar-nav ml-auto"><li class="nav-item"><a href="../../" rel="" class="nav-link">Home</a></li><li class="nav-item"><a href="../../games/" rel="" class="nav-link">Games</a></li><li class="nav-item active"><a href="../" rel="" class="nav-link">Devlog</a></li></ul>
+					&copy; 2018, 2019 Maarten Engels, thedreamweb.eu <a href="#" id="rw_email_contact">Contact Me</a><script type="text/javascript">var _rwObsfuscatedHref0 = "mai";var _rwObsfuscatedHref1 = "lto";var _rwObsfuscatedHref2 = ":ma";var _rwObsfuscatedHref3 = "art";var _rwObsfuscatedHref4 = "en@";var _rwObsfuscatedHref5 = "the";var _rwObsfuscatedHref6 = "dre";var _rwObsfuscatedHref7 = "amw";var _rwObsfuscatedHref8 = "eb.";var _rwObsfuscatedHref9 = "eu";var _rwObsfuscatedHref = _rwObsfuscatedHref0+_rwObsfuscatedHref1+_rwObsfuscatedHref2+_rwObsfuscatedHref3+_rwObsfuscatedHref4+_rwObsfuscatedHref5+_rwObsfuscatedHref6+_rwObsfuscatedHref7+_rwObsfuscatedHref8+_rwObsfuscatedHref9; document.getElementById("rw_email_contact").href = _rwObsfuscatedHref;</script>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="../../rw_common/themes/Future/js/main.js?rwcache=632048786"></script>
+<div id="rapidweaver_privacy_message">
+    <p><span style="font-size:14px; ">We value your privacy. This site does not collect personal identifiable information, nor does it use external services that do so. For more information, read our <a href="privacy/index.html">privacy policy</a>.</span></p>
+    <button id="rapidweaver_privacy_message_dismiss_button">Dismiss</button>
+</div>
+
+<script src="../../rw_common/assets/message.js?rwcache=632048786"></script>
+</body>
+
+</html>
